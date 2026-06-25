@@ -1,8 +1,23 @@
 import { useState } from 'react'
 
 function App() {
+  const [userName, setUserName] = useState('')
+  const [loginName, setLoginName] = useState('')
   const [goal, setGoal] = useState('strength')
   const [level, setLevel] = useState('beginner')
+  const [workouts, setWorkouts] = useState([
+    { id: 1, name: 'Push-ups', reps: '3 sets x 10 reps', type: 'Strength' },
+    { id: 2, name: 'Jumping Jacks', reps: '3 sets x 30 seconds', type: 'Cardio' },
+    { id: 3, name: 'Squats', reps: '3 sets x 12 reps', type: 'Legs' },
+  ])
+
+  const [form, setForm] = useState({
+    name: '',
+    reps: '',
+    type: '',
+  })
+
+  const [editingId, setEditingId] = useState(null)
 
   const workoutSuggestions = {
     strength: {
@@ -45,16 +60,101 @@ function App() {
 
   const suggestions = workoutSuggestions[goal][level]
 
+  function handleLogin(event) {
+    event.preventDefault()
+
+    if (!loginName.trim()) {
+      return
+    }
+
+    setUserName(loginName.trim())
+    setLoginName('')
+  }
+
+  function handleLogout() {
+    setUserName('')
+  }
+
+  function handleFormChange(event) {
+    const { name, value } = event.target
+    setForm({ ...form, [name]: value })
+  }
+
+  function handleSubmit(event) {
+    event.preventDefault()
+
+    if (!form.name.trim() || !form.reps.trim() || !form.type.trim()) {
+      return
+    }
+
+    if (editingId) {
+      setWorkouts(
+        workouts.map((workout) =>
+          workout.id === editingId ? { ...workout, ...form } : workout,
+        ),
+      )
+      setEditingId(null)
+    } else {
+      setWorkouts([
+        ...workouts,
+        {
+          id: Date.now(),
+          ...form,
+        },
+      ])
+    }
+
+    setForm({ name: '', reps: '', type: '' })
+  }
+
+  function handleEdit(workout) {
+    setEditingId(workout.id)
+    setForm({
+      name: workout.name,
+      reps: workout.reps,
+      type: workout.type,
+    })
+  }
+
+  function handleDelete(id) {
+    setWorkouts(workouts.filter((workout) => workout.id !== id))
+  }
+
+  if (!userName) {
+    return (
+      <main className="app auth-page">
+        <section className="auth-card">
+          <p className="label">Workout Whisperer</p>
+          <h1>Login</h1>
+          <p>Enter your name to open your workout dashboard.</p>
+
+          <form onSubmit={handleLogin} className="auth-form">
+            <input
+              type="text"
+              value={loginName}
+              onChange={(event) => setLoginName(event.target.value)}
+              placeholder="Your name"
+            />
+            <button type="submit">Login</button>
+          </form>
+        </section>
+      </main>
+    )
+  }
+
   return (
     <main className="app">
-      <section className="hero">
-        <p className="label">AI fitness planner</p>
-        <h1>Workout Whisperer</h1>
-        <p>
-          Choose your fitness goal and level. Workout Whisperer suggests a simple
-          workout plan based on your input.
-        </p>
-      </section>
+      <header className="topbar">
+        <div>
+          <p className="label">AI fitness planner</p>
+          <h1>Workout Whisperer</h1>
+          <p>Welcome, {userName}. Manage workouts and get smart suggestions.</p>
+        </div>
+
+        <button type="button" className="secondary-button" onClick={handleLogout}>
+          Logout
+        </button>
+      </header>
 
       <section className="recommender">
         <h2>AI Workout Suggestion</h2>
@@ -77,19 +177,29 @@ function App() {
             </select>
           </label>
         </div>
+
+        <div className="suggestions">
+          {suggestions.map((suggestion) => (
+            <article className="suggestion-card" key={suggestion}>
+              {suggestion}
+            </article>
+          ))}
+        </div>
       </section>
 
-      <section className="workouts">
-        <h2>Recommended Plan</h2>
+      <section className="manager">
+        <h2>Workout Manager</h2>
 
-        {suggestions.map((workout) => (
-          <article className="workout-card" key={workout}>
-            <span>{workout}</span>
-          </article>
-        ))}
-      </section>
-    </main>
-  )
-}
+        <form onSubmit={handleSubmit} className="workout-form">
+          <input
+            type="text"
+            name="name"
+            value={form.name}
+            onChange={handleFormChange}
+            placeholder="Workout name"
+          />
 
-export default App
+          <input
+            type="text"
+            name="reps"
+           
