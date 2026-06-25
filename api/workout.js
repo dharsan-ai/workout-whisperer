@@ -12,29 +12,21 @@ export default async function handler(req, res) {
   try {
     const { goal, level } = req.body
 
-    const prompt = `
-You are Workout Whisperer, an AI fitness assistant.
-Create a safe workout plan for this user.
-
-Goal: ${goal}
-Fitness level: ${level}
-
-Return:
-- 4 exercises
-- sets and reps
-- one short safety tip
-`
+    if (!goal || !level) {
+      return res.status(400).json({ error: 'Goal and level are required.' })
+    }
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4.1-mini',
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful fitness assistant that creates simple workout plans.',
+          content:
+            'You are Workout Whisperer, a helpful fitness assistant. Create safe, simple workout plans.',
         },
         {
           role: 'user',
-          content: prompt,
+          content: `Create a ${level} workout plan for ${goal}. Include 4 exercises, sets, reps, and one safety tip.`,
         },
       ],
     })
@@ -44,7 +36,7 @@ Return:
     })
   } catch (error) {
     return res.status(500).json({
-      error: 'AI workout generation failed',
+      error: 'AI workout generation failed. Check OPENAI_API_KEY environment variable.',
     })
   }
 }
