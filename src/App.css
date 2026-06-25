@@ -70,7 +70,9 @@ form {
 }
 
 .form-grid {
+  display: grid;
   grid-template-columns: 1fr 1fr auto;
+  gap: 16px;
   align-items: end;
 }
 
@@ -109,21 +111,30 @@ button {
   color: #b42318;
 }
 
+.ai-result {
+  margin-top: 20px;
+  border: 1px solid #cfe0ff;
+  border-radius: 8px;
+  padding: 18px;
+  background: #f7faff;
+}
+
+.ai-result p,
+.workout-card p {
+  white-space: pre-wrap;
+  color: #526176;
+}
+
 .workout-card {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  align-items: center;
+  align-items: flex-start;
   border: 1px solid #e1e8f0;
   border-radius: 8px;
   padding: 16px;
   margin-top: 12px;
   background: #fbfdff;
-}
-
-.workout-card p {
-  margin: 4px 0;
-  color: #526176;
 }
 
 @media (max-width: 720px) {
