@@ -8,6 +8,7 @@ function App() {
   const [level, setLevel] = useState('Beginner')
   const [aiPlan, setAiPlan] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [savedPlans, setSavedPlans] = useState([])
 
   const handleLogin = (event) => {
