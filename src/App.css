@@ -52,11 +52,15 @@ h1 {
   font-size: 42px;
 }
 
-.topbar {
+.topbar,
+.section-heading {
   display: flex;
   justify-content: space-between;
   gap: 20px;
   align-items: flex-start;
+}
+
+.topbar {
   margin-bottom: 20px;
 }
 
@@ -101,6 +105,11 @@ button {
   padding: 13px 18px;
 }
 
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .secondary {
   background: #e8eef8;
   color: #2457c5;
@@ -109,6 +118,11 @@ button {
 .danger {
   background: #ffe8e8;
   color: #b42318;
+}
+
+.error {
+  color: #b42318;
+  font-weight: bold;
 }
 
 .ai-result {
@@ -139,6 +153,7 @@ button {
 
 @media (max-width: 720px) {
   .topbar,
+  .section-heading,
   .workout-card {
     flex-direction: column;
   }
