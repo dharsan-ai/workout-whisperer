@@ -1,5 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
+
+const defaultPlans = [
+  {
+    id: 1,
+    goal: 'Strength',
+    level: 'Beginner',
+    content:
+      'Push-ups - 3 sets x 8 reps\nBodyweight squats - 3 sets x 10 reps\nPlank - 3 sets x 20 seconds\nGlute bridges - 3 sets x 12 reps',
+  },
+]
 
 function App() {
   const [user, setUser] = useState('')
@@ -9,15 +19,54 @@ function App() {
   const [aiPlan, setAiPlan] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [savedPlans, setSavedPlans] = useState([])
+  const [savedPlans, setSavedPlans] = useState(defaultPlans)
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('workoutUser')
+    const storedPlans = localStorage.getItem('workoutPlans')
+
+    if (storedUser) {
+      setUser(storedUser)
+    }
+
+    if (storedPlans) {
+      setSavedPlans(JSON.parse(storedPlans))
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('workoutPlans', JSON.stringify(savedPlans))
+  }, [savedPlans])
 
   const handleLogin = (event) => {
     event.preventDefault()
-    setUser(name || 'Fitness User')
+
+    const trimmedName = name.trim()
+
+    if (!trimmedName) {
+      setError('Please enter your name to continue.')
+      return
+    }
+
+    setError('')
+    setUser(trimmedName)
+    localStorage.setItem('workoutUser', trimmedName)
+  }
+
+  const handleLogout = () => {
+    setUser('')
+    setName('')
+    localStorage.removeItem('workoutUser')
   }
 
   const generateWorkout = async () => {
+    if (!goal || !level) {
+      setError('Please choose a goal and fitness level.')
+      return
+    }
+
     setLoading(true)
+    setError('')
     setAiPlan('')
 
     try {
@@ -28,16 +77,24 @@ function App() {
       })
 
       const data = await response.json()
-      setAiPlan(data.plan || data.error || 'No AI plan returned.')
-    } catch {
-      setAiPlan('Unable to connect to the AI workout endpoint.')
+
+      if (!response.ok) {
+        throw new Error(data.error || 'AI request failed.')
+      }
+
+      setAiPlan(data.plan || 'No workout plan returned.')
+    } catch (requestError) {
+      setError(requestError.message || 'Unable to connect to the AI workout endpoint.')
     } finally {
       setLoading(false)
     }
   }
 
   const savePlan = () => {
-    if (!aiPlan) return
+    if (!aiPlan) {
+      setError('Generate an AI workout before saving.')
+      return
+    }
 
     const plan = {
       id: Date.now(),
@@ -47,10 +104,15 @@ function App() {
     }
 
     setSavedPlans([plan, ...savedPlans])
+    setError('')
   }
 
   const deletePlan = (id) => {
     setSavedPlans(savedPlans.filter((plan) => plan.id !== id))
+  }
+
+  const clearPlans = () => {
+    setSavedPlans([])
   }
 
   if (!user) {
@@ -67,6 +129,7 @@ function App() {
               onChange={(event) => setName(event.target.value)}
               placeholder="Your name"
             />
+            {error && <p className="error">{error}</p>}
             <button type="submit">Login</button>
           </form>
         </section>
@@ -80,10 +143,10 @@ function App() {
         <div>
           <p className="label">AI fitness planner</p>
           <h1>Workout Whisperer</h1>
-          <p>Welcome, {user}. Generate workout plans with an LLM.</p>
+          <p>Welcome, {user}. Generate, save, and manage workout plans.</p>
         </div>
 
-        <button className="secondary" onClick={() => setUser('')}>
+        <button className="secondary" onClick={handleLogout}>
           Logout
         </button>
       </header>
@@ -111,10 +174,12 @@ function App() {
             </select>
           </label>
 
-          <button type="button" onClick={generateWorkout}>
+          <button type="button" onClick={generateWorkout} disabled={loading}>
             {loading ? 'Asking AI...' : 'Ask AI'}
           </button>
         </div>
+
+        {error && <p className="error">{error}</p>}
 
         {aiPlan && (
           <div className="ai-result">
@@ -128,7 +193,16 @@ function App() {
       </section>
 
       <section className="panel">
-        <h2>Saved Plans</h2>
+        <div className="section-heading">
+          <div>
+            <h2>Saved Plans</h2>
+            <p>{savedPlans.length} workout plan(s) saved locally.</p>
+          </div>
+
+          <button className="secondary" onClick={clearPlans}>
+            Clear All
+          </button>
+        </div>
 
         {savedPlans.length === 0 && <p>No saved plans yet.</p>}
 
